@@ -1,0 +1,118 @@
+plugins {
+    id 'org.springframework.boot' version '3.1.5'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'java'
+    id 'jacoco'
+    id "org.sonarqube" version "3.0"
+}
+
+version = '0.0.1-SNAPSHOT'
+
+configurations {
+    jaxb
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    //  compile.exclude module: 'spring-boot-starter-logging'
+}
+
+repositories {
+
+    mavenCentral()
+}
+
+dependencies {
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web-services'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.modelmapper:modelmapper:2.3.8'
+    implementation 'log4j:log4j:1.2.17'
+
+    implementation 'com.eatthepath:java-otp:0.4.0'
+    implementation 'commons-codec:commons-codec:1.16.1'
+
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws'
+
+    implementation 'com.h2database:h2'
+
+    implementation 'junit:junit:4.13.1'
+
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.3.4.RELEASE'
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
+    testImplementation group: 'org.mockito', name: 'mockito-inline', version: '3.8.0'
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.3")
+
+    implementation 'io.swagger.core.v3:swagger-annotations:2.1.10'
+    implementation group: 'org.json', name: 'json', version: '20090211'
+
+    testImplementation 'org.powermock:powermock-api-mockito2:2.0.9' // Reemplaza con la versión más reciente
+    testImplementation 'org.powermock:powermock-module-junit4:2.0.9' // Reemplaza con la versión más reciente
+    testImplementation 'org.mockito:mockito-core:3.11.2' //
+
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+springBoot {
+    buildInfo {
+        properties {
+            time = null
+        }
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.8"
+    reportsDir = file("$buildDir/customJacocoReportDir")
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.destination file("${buildDir}/jacoco/jacocoTest")
+    }
+
+    // exclude folders from coverage analysis ,
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: ['**/common/**', '**/config/**', '**/dto/**', '**/health/**', '**/model/**', '**/models/**',
+                                        '**/repository/**', '**/resources/**', '**/src/main/java/com/bolivar/proteccion/creditos/ProteccionCreditosApplication.java/**'])
+            // exclude this directory dao from SonarQube analysis
+        }))
+    }
+}
+
+ext {
+    set('springCloudVersion', "Finchley.SR1")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
